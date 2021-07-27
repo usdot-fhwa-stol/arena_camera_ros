@@ -16,9 +16,9 @@ FROM usdotfhwastoldev/carma-base:develop as base
 FROM base as setup
 
 RUN mkdir ~/src
-COPY --chown=carma . /home/carma/src/CARMALucidCameraDriver
-RUN ~/src/CARMALucidCameraDriver/docker/checkout.bash
-RUN ~/src/CARMALucidCameraDriver/docker/install.sh
+COPY --chown=carma . /home/carma/src/CARMAArenaCameraDriver
+RUN ~/src/CARMArenaCameraDriver/docker/checkout.bash
+RUN ~/src/CARMArenaCameraDriver/docker/install.sh
 
 FROM base
 
@@ -27,16 +27,16 @@ ARG VERSION="NULL"
 ARG VCS_REF="NULL"
 
 LABEL org.label-schema.schema-version="1.0"
-LABEL org.label-schema.name="carma-lucid-camera-driver"
-LABEL org.label-schema.description="LUCID CAMERA vision driver + driver wrapper for the CARMA Platform"
+LABEL org.label-schema.name="carma-arena-camera-driver"
+LABEL org.label-schema.description="ARENA CAMERA vision driver + driver wrapper for the CARMA Platform"
 LABEL org.label-schema.vendor="Leidos"
 LABEL org.label-schema.version=${VERSION}
 LABEL org.label-schema.url="https://highways.dot.gov/research/research-programs/operations/CARMA"
-LABEL org.label-schema.vcs-url="https://github.com/usdot-fhwa-stol/lucid_camera/"
+LABEL org.label-schema.vcs-url="https://github.com/usdot-fhwa-stol/arena_camera_ros/"
 LABEL org.label-schema.vcs-ref=${VCS_REF}
 LABEL org.label-schema.build-date=${BUILD_DATE}
 
 COPY --from=setup /home/carma/install /opt/carma/install
 RUN sudo chmod -R +x /opt/carma/install
 
-CMD  [ "wait-for-it.sh", "localhost:11311", "--", "roslaunch", "lucid_camera", "mono_camera.launch"]
+CMD  [ "wait-for-it.sh", "localhost:11311", "--", "roslaunch", "arena_camera", "mono_camera.launch"]

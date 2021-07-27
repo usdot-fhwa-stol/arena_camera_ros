@@ -17,7 +17,7 @@
 USERNAME=usdotfhwastol
 
 cd "$(dirname "$0")"
-IMAGE=carma-lucid-camera-driver
+IMAGE=carma-arena-camera-driver
 
 echo ""
 echo "##### $IMAGE Docker Image Build Script #####"
