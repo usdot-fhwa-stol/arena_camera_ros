@@ -17,8 +17,8 @@ FROM base as setup
 
 RUN mkdir ~/src
 COPY --chown=carma . /home/carma/src/CARMAArenaCameraDriver
-RUN ~/src/CARMArenaCameraDriver/docker/checkout.bash
-RUN ~/src/CARMArenaCameraDriver/docker/install.sh
+RUN ~/src/CARMAArenaCameraDriver/docker/checkout.bash
+RUN ~/src/CARMAArenaCameraDriver/docker/install.sh
 
 FROM base
 
@@ -28,7 +28,7 @@ ARG VCS_REF="NULL"
 
 LABEL org.label-schema.schema-version="1.0"
 LABEL org.label-schema.name="carma-arena-camera-driver"
-LABEL org.label-schema.description="ARENA CAMERA vision driver + driver wrapper for the CARMA Platform"
+LABEL org.label-schema.description="Arena Camera vision driver + driver wrapper for the CARMA Platform"
 LABEL org.label-schema.vendor="Leidos"
 LABEL org.label-schema.version=${VERSION}
 LABEL org.label-schema.url="https://highways.dot.gov/research/research-programs/operations/CARMA"
@@ -38,5 +38,12 @@ LABEL org.label-schema.build-date=${BUILD_DATE}
 
 COPY --from=setup /home/carma/install /opt/carma/install
 RUN sudo chmod -R +x /opt/carma/install
+COPY --from=setup /opt/ArenaSDK_Linux_x64 /opt/ArenaSDK_Linux_x64
+RUN cd /opt/ArenaSDK_Linux_x64 && \
+        sudo sh Arena_SDK.conf && \
+        echo "export ARENA_ROOT=/opt/ArenaSDK_Linux_x64" >> ~/.bashrc && \
+        echo "export ARENA_CONFIG_ROOT=/opt/carma/" >> ~/.bashrc && \
+        sudo cp /opt/ros/kinetic/include/sensor_msgs/image_encodings.h /opt/ros/kinetic/include/sensor_msgs/image_encodings.h.bak && \
+        sudo cp /opt/ArenaSDK_Linux_x64/image_encodings.h /opt/ros/kinetic/include/sensor_msgs/image_encodings.h
 
 CMD  [ "wait-for-it.sh", "localhost:11311", "--", "roslaunch", "arena_camera", "mono_camera.launch"]
