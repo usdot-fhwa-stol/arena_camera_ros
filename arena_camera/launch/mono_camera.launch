@@ -94,7 +94,7 @@
 
     <!-- The timeout while searching the exposure which is connected to the
     desired brightness. For slow system this has to be increased.. -->
-    <arg name="exposure_search_timeout" default="5.0" />
+    <arg name="exposure_search_timeout" default="15.0" />
 
     <!-- The exposure search can be limited with an upper bound. This is to prevent
     very high exposure times and resulting timeouts.
@@ -111,7 +111,7 @@
     The inter-package delay in ticks to prevent lost frames.
     For most of GigE-Cameras, a value of 1000 is reasonable.
     For cameras used on a RaspberryPI this value should be set to 11772. -->
-    <arg name="inter_pkg_delay" default="1000" />
+    <arg name="inter_pkg_delay" default="2000" />
 
     <node name="$(arg node_name)" ns="$(arg device_user_id)" pkg="arena_camera" type="arena_camera_node" output="screen"
           respawn="$(arg respawn)" launch-prefix="$(arg launch_prefix)">
@@ -123,15 +123,15 @@
         <param name="binning_x" value="$(arg binning_x)" />
         <param name="binning_y" value="$(arg binning_y)" />
         <param name="shutter_mode" value="$(arg shutter_mode)" />
-        <param name="exposure" value="$(arg exposure)" />
+        <!-- <param name="exposure" value="$(arg exposure)" />
         <param name="gain" value="$(arg gain)" />
         <param name="gamma" value="$(arg gamma)" />
         <param name="brightness" value="$(arg brightness)" />
-        <param name="brightness_continuous" value="$(arg brightness_continuous)" />
+        <param name="brightness_continuous" value="$(arg brightness_continuous)" /> -->
         <param name="exposure_auto" value="$(arg exposure_auto)" />
         <param name="gain_auto" value="$(arg gain_auto)" />
         <param name="exposure_search_timeout" value="$(arg exposure_search_timeout)" />
-        <param name="auto_exposure_upper_limit" value="$(arg auto_exposure_upper_limit)" />
+        <!-- <param name="auto_exposure_upper_limit" value="$(arg auto_exposure_upper_limit)" /> -->
         <param name="mtu_size" value="$(arg mtu_size)" />
         <param name="inter_pkg_delay" value="$(arg inter_pkg_delay)" />
     </node>
