@@ -64,6 +64,7 @@ ArenaCameraNode::ArenaCameraNode()
   : nh_("~")
   , arena_camera_parameter_set_()
   // srv init
+  , set_decimation_srv_(nh_.advertiseService("set_decimation", &ArenaCameraNode::setDecimationCallback, this))
   , set_binning_srv_(nh_.advertiseService("set_binning", &ArenaCameraNode::setBinningCallback, this))
   , set_roi_srv_(nh_.advertiseService("set_roi", &ArenaCameraNode::setROICallback, this))
   , set_exposure_srv_(nh_.advertiseService("set_exposure", &ArenaCameraNode::setExposureCallback, this))
@@ -263,6 +264,38 @@ float currentGamma()
   {
     float gammaValue = pGamma->GetValue();
     return gammaValue;
+  }
+}
+
+int64_t currentDecimationX()
+{
+  GenApi::CIntegerPtr DecimationHorizontal = pDevice_->GetNodeMap()->GetNode("DecimationHorizontal");
+
+  if (!DecimationHorizontal || !GenApi::IsReadable(DecimationHorizontal))
+  {
+    ROS_WARN_STREAM("No DecimationHorizontal value, returning -1");
+    return -1;
+  }
+  else
+  {
+    float decimationXValue = DecimationHorizontal->GetValue();
+    return decimationXValue;
+  }
+}
+
+int64_t currentDecimationY()
+{
+  GenApi::CIntegerPtr DecimationVertical = pDevice_->GetNodeMap()->GetNode("DecimationVertical");
+
+  if (!DecimationVertical || !GenApi::IsReadable(DecimationVertical))
+  {
+    ROS_WARN_STREAM("No DecimationVertical value, returning -1");
+    return -1;
+  }
+  else
+  {
+    float decimationYValue = DecimationVertical->GetValue();
+    return decimationYValue;
   }
 }
 
@@ -556,6 +589,28 @@ bool ArenaCameraNode::startGrabbing()
       }
     }
 
+    if (arena_camera_parameter_set_.decimation_x_given_)
+    {
+      size_t reached_decimation_x;
+      if (setDecimationX(arena_camera_parameter_set_.decimation_x_, reached_decimation_x))
+      {
+        ROS_INFO_STREAM("Setting horizontal decimation_x to " << arena_camera_parameter_set_.decimation_x_);
+        ROS_WARN_STREAM("The image width of the camera_info-msg will "
+                        << "be adapted, so that the decimation_x value in this msg remains 1");
+      }
+    }
+
+    if (arena_camera_parameter_set_.decimation_y_given_)
+    {
+      size_t reached_decimation_y;
+      if (setDecimationY(arena_camera_parameter_set_.decimation_y_, reached_decimation_y))
+      {
+        ROS_INFO_STREAM("Setting vertical decimation_y to " << arena_camera_parameter_set_.decimation_y_);
+        ROS_WARN_STREAM("The image height of the camera_info-msg will "
+                        << "be adapted, so that the decimation_y value in this msg remains 1");
+      }
+    }
+
     if (arena_camera_parameter_set_.binning_x_given_)
     {
       size_t reached_binning_x;
@@ -643,6 +698,7 @@ bool ArenaCameraNode::startGrabbing()
 
   ROS_INFO_STREAM("Startup settings: "
                   << "encoding = '" << currentROSEncoding() << "', "
+                  << "decimation = [" << currentDecimationX() << ", " << currentDecimationY() << "], "
                   << "binning = [" << currentBinningX() << ", " << currentBinningY() << "], "
                   << "exposure = " << currentExposure() << ", "
                   << "gain = " << currentGain() << ", "
@@ -1095,7 +1151,7 @@ void ArenaCameraNode::setupInitialCameraInfo(sensor_msgs::CameraInfo& cam_info_m
 
   // The image dimensions with which the camera was calibrated. Normally
   // this will be the full camera resolution in pixels. They remain fix, even
-  // if binning is applied
+  // if binning or decimation is applied
   // rows and colums
   cam_info_msg.height = Arena::GetNodeValue<int64_t>(pDevice_->GetNodeMap(), "Height");
   cam_info_msg.width = Arena::GetNodeValue<int64_t>(pDevice_->GetNodeMap(), "Width");
@@ -1153,6 +1209,13 @@ void ArenaCameraNode::setupInitialCameraInfo(sensor_msgs::CameraInfo& cam_info_m
   //  This holds for both images of a stereo pair.
   cam_info_msg.P.assign(0.0);
 
+  // Decimation factor to get lower-resolution images. Rows or columns of 
+  // pixels are thrown away (evenly spaced), leaving a smaller image, of size
+  // (width / decimation_x) x (height / decimation_y).
+  // The default values are decimation_x = decimation_y = 1 (no subsampling).
+  //  cam_info_msg.decimation_x = currentDecimationX();
+  //  cam_info_msg.decimation_y = currentDecimationY();
+
   // Binning refers here to any camera setting which combines rectangular
   // neighborhoods of pixels into larger "super-pixels." It reduces the
   // resolution of the output image to (width / binning_x) x (height /
@@ -1176,6 +1239,170 @@ bool ArenaCameraNode::setROI(const sensor_msgs::RegionOfInterest target_roi, sen
 {
   boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
   // TODO: set ROI
+  return true;
+}
+
+bool setDecimationXValue(const size_t& target_decimation_x, size_t& reached_decimation_x)
+{
+  try
+  {
+    GenApi::CIntegerPtr pDecimationHorizontal = pDevice_->GetNodeMap()->GetNode("DecimationHorizontal");
+    if (GenApi::IsWritable(pDecimationHorizontal))
+    {
+      size_t decimation_x_to_set = target_decimation_x;
+      if (decimation_x_to_set < pDecimationHorizontal->GetMin())
+      {
+        ROS_WARN_STREAM("Desired horizontal decimation_x factor(" << decimation_x_to_set << ") unreachable! Setting to lower "
+                                                               << "limit: " << pDecimationHorizontal->GetMin());
+        decimation_x_to_set = pDecimationHorizontal->GetMin();
+      }
+      else if (decimation_x_to_set > pDecimationHorizontal->GetMax())
+      {
+        ROS_WARN_STREAM("Desired horizontal decimation_x factor(" << decimation_x_to_set << ") unreachable! Setting to upper "
+                                                               << "limit: " << pDecimationHorizontal->GetMax());
+        decimation_x_to_set = pDecimationHorizontal->GetMax();
+      }
+
+      pDecimationHorizontal->SetValue(decimation_x_to_set);
+      reached_decimation_x = currentDecimationX();
+    }
+    else
+    {
+      ROS_WARN_STREAM("Camera does not support decimation. Will keep the "
+                      << "current settings");
+      reached_decimation_x = currentDecimationX();
+    }
+  }
+
+  catch (const GenICam::GenericException& e)
+  {
+    ROS_ERROR_STREAM("An exception while setting target horizontal "
+                     << "decimation_x factor to " << target_decimation_x << " occurred: " << e.GetDescription());
+    return false;
+  }
+  return true;
+}
+
+bool ArenaCameraNode::setDecimationX(const size_t& target_decimation_x, size_t& reached_decimation_x)
+{
+  boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+
+  if (!setDecimationXValue(target_decimation_x, reached_decimation_x))
+  {
+    // retry till timeout
+    ros::Rate r(10.0);
+    ros::Time timeout(ros::Time::now() + ros::Duration(2.0));
+    while (ros::ok())
+    {
+      if (setDecimationXValue(target_decimation_x, reached_decimation_x))
+      {
+        break;
+      }
+      if (ros::Time::now() > timeout)
+      {
+        ROS_ERROR_STREAM("Error in setDecimationX(): Unable to set target "
+                         << "decimation_x factor before timeout");
+        CameraInfoPtr cam_info(new CameraInfo(camera_info_manager_->getCameraInfo()));
+        cam_info->binning_x = currentDecimationX();
+        camera_info_manager_->setCameraInfo(*cam_info);
+        //   img_raw_msg_.width = pImage_->GetWidth();
+        //  step = full row length in bytes, img_size = (step * rows),
+        //  imagePixelDepth already contains the number of channels
+        //  img_raw_msg_.step = img_raw_msg_.width * (pImage_->GetBitsPerPixel()
+        //  / 8);
+        return false;
+      }
+      r.sleep();
+    }
+  }
+
+  return true;
+}
+
+bool setDecimationYValue(const size_t& target_decimation_y, size_t& reached_decimation_y)
+{
+  try
+  {
+    GenApi::CIntegerPtr pDecimationVertical = pDevice_->GetNodeMap()->GetNode("DecimationVertical");
+    if (GenApi::IsWritable(pDecimationVertical))
+    {
+      size_t decimation_y_to_set = target_decimation_y;
+      if (decimation_y_to_set < pDecimationVertical->GetMin())
+      {
+        ROS_WARN_STREAM("Desired horizontal decimation_y factor(" << decimation_y_to_set << ") unreachable! Setting to lower "
+                                                               << "limit: " << pDecimationVertical->GetMin());
+        decimation_y_to_set = pDecimationVertical->GetMin();
+      }
+      else if (decimation_y_to_set > pDecimationVertical->GetMax())
+      {
+        ROS_WARN_STREAM("Desired horizontal decimation_y factor(" << decimation_y_to_set << ") unreachable! Setting to upper "
+                                                               << "limit: " << pDecimationVertical->GetMax());
+        decimation_y_to_set = pDecimationVertical->GetMax();
+      }
+
+      pDecimationVertical->SetValue(decimation_y_to_set);
+      reached_decimation_y = currentDecimationY();
+    }
+    else
+    {
+      ROS_WARN_STREAM("Camera does not support decimation. Will keep the "
+                      << "current settings");
+      reached_decimation_y = currentDecimationY();
+    }
+  }
+
+  catch (const GenICam::GenericException& e)
+  {
+    ROS_ERROR_STREAM("An exception while setting target horizontal "
+                     << "decimation_y factor to " << target_decimation_y << " occurred: " << e.GetDescription());
+    return false;
+  }
+  return true;
+}
+
+bool ArenaCameraNode::setDecimationY(const size_t& target_decimation_y, size_t& reached_decimation_y)
+{
+  boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
+
+  if (!setDecimationYValue(target_decimation_y, reached_decimation_y))
+  {
+    // retry till timeout
+    ros::Rate r(10.0);
+    ros::Time timeout(ros::Time::now() + ros::Duration(2.0));
+    while (ros::ok())
+    {
+      if (setDecimationYValue(target_decimation_y, reached_decimation_y))
+      {
+        break;
+      }
+      if (ros::Time::now() > timeout)
+      {
+        ROS_ERROR_STREAM("Error in setDecimationY(): Unable to set target "
+                         << "decimation_y factor before timeout");
+        CameraInfoPtr cam_info(new CameraInfo(camera_info_manager_->getCameraInfo()));
+        cam_info->binning_y = currentDecimationY();
+        camera_info_manager_->setCameraInfo(*cam_info);
+        //  step = full row length in bytes, img_size = (step * rows),
+        //  imagePixelDepth already contains the number of channels
+        img_raw_msg_.step = img_raw_msg_.width * (pImage_->GetBitsPerPixel() / 8);
+        return false;
+      }
+      r.sleep();
+    }
+  }
+
+  return true;
+}
+
+bool ArenaCameraNode::setDecimationCallback(camera_control_msgs::SetDecimation::Request& req,
+                                         camera_control_msgs::SetDecimation::Response& res)
+{
+  size_t reached_decimation_x, reached_decimation_y;
+  bool success_x = setDecimationX(req.target_decimation_x, reached_decimation_x);
+  bool success_y = setDecimationY(req.target_decimation_y, reached_decimation_y);
+  res.reached_decimation_x = static_cast<uint32_t>(reached_decimation_x);
+  res.reached_decimation_y = static_cast<uint32_t>(reached_decimation_y);
+  res.success = success_x && success_y;
   return true;
 }
 

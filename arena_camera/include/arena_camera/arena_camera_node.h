@@ -45,6 +45,7 @@
 #include <diagnostic_updater/publisher.h>
 
 #include <camera_control_msgs/SetBool.h>
+#include <camera_control_msgs/SetDecimation.h>
 #include <camera_control_msgs/SetBinning.h>
 #include <camera_control_msgs/SetBrightness.h>
 #include <camera_control_msgs/SetExposure.h>
@@ -157,6 +158,33 @@ protected:
   * @return true if the targeted roi could be reached
   */
   bool setROI(const sensor_msgs::RegionOfInterest target_roi, sensor_msgs::RegionOfInterest& reached_roi);
+
+  /**
+  * Update the horizontal decimation_x factor to get downsampled images
+  * @param target_decimation_x the target horizontal decimation_x factor
+  * @param reached_decimation_x the horizontal decimation_x factor that could be
+  *        reached
+  * @return true if the targeted decimation could be reached
+  */
+  bool setDecimationX(const size_t& target_decimation_x, size_t& reached_decimation_x);
+
+  /**
+  * Update the vertical decimation_y factor to get downsampled images
+  * @param target_decimation_y the target vertical decimation_y factor
+  * @param reached_decimation_y the vertical decimation_y factor that could be
+  *        reached
+  * @return true if the targeted decimation could be reached
+  */
+  bool setDecimationY(const size_t& target_decimation_y, size_t& reached_decimation_y);
+
+  /**
+  * Service callback for updating the cameras decimation setting
+  * @param req request
+  * @param res response
+  * @return true on success
+  */
+  bool setDecimationCallback(camera_control_msgs::SetDecimation::Request& req,
+                          camera_control_msgs::SetDecimation::Response& res);
 
   /**
   * Update the horizontal binning_x factor to get downsampled images
@@ -356,6 +384,7 @@ protected:
 
   ros::NodeHandle nh_;
   ArenaCameraParameter arena_camera_parameter_set_;
+  ros::ServiceServer set_decimation_srv_;
   ros::ServiceServer set_binning_srv_;
   ros::ServiceServer set_roi_srv_;
   ros::ServiceServer set_exposure_srv_;

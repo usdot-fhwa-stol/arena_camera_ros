@@ -45,6 +45,10 @@ ArenaCameraParameter::ArenaCameraParameter()
   , camera_info_url_("")
   , image_encoding_("")
   , image_encoding_given_(false)
+  , decimation_x_(1)
+  , decimation_y_(1)
+  , decimation_x_given_(false)
+  , decimation_y_given_(false)
   , binning_x_(1)
   , binning_y_(1)
   , binning_x_given_(false)
@@ -96,6 +100,43 @@ void ArenaCameraParameter::readFromRosParameterServer(const ros::NodeHandle& nh)
   if (nh.hasParam("camera_info_url"))
   {
     nh.getParam("camera_info_url", camera_info_url_);
+  }
+
+  decimation_x_given_ = nh.hasParam("decimation_x");
+  if (decimation_x_given_)
+  {
+    int decimation_x;
+    nh.getParam("decimation_x", decimation_x);
+    ROS_DEBUG_STREAM( "decimation x is given and has value " << decimation_x);
+    if (decimation_x > 32 || decimation_x < 0)
+    {
+      ROS_WARN_STREAM("Desired horizontal decimation_x factor not in valid "
+                      << "range! Decimation x = " << decimation_x << ". Will reset it to "
+                      << "default value (1)");
+      decimation_x_given_ = false;
+    }
+    else
+    {
+      decimation_x_ = static_cast<size_t>(decimation_x);
+    }
+  }
+  decimation_y_given_ = nh.hasParam("decimation_y");
+  if (decimation_y_given_)
+  {
+    int decimation_y;
+    nh.getParam("decimation_y", decimation_y);
+    ROS_DEBUG_STREAM("decimation y is given and has value " << decimation_y);
+    if (decimation_y > 32 || decimation_y < 0)
+    {
+      ROS_WARN_STREAM("Desired vertical decimation_y factor not in valid "
+                      << "range! Decimation y = " << decimation_y << ". Will reset it to "
+                      << "default value (1)");
+      decimation_y_given_ = false;
+    }
+    else
+    {
+      decimation_y_ = static_cast<size_t>(decimation_y);
+    }
   }
 
   binning_x_given_ = nh.hasParam("binning_x");

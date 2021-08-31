@@ -129,6 +129,22 @@ public:
   virtual bool setROI(const sensor_msgs::RegionOfInterest target_roi, sensor_msgs::RegionOfInterest& reached_roi) = 0;
 
   /**
+   * Sets the target horizontal decimation_x factor
+   * @param target_decimation_x the target horizontal decimation_x factor.
+   * @param reached_decimation_x the reached horizontal decimation_x factor.
+   * @return false if a communication error occurred or true otherwise.
+   */
+  virtual bool setDecimationX(const size_t& target_decimation_x, size_t& reached_decimation_x) = 0;
+
+  /**
+   * Sets the target vertical decimation_y factor
+   * @param target_decimation_y the target vertical decimation_y factor.
+   * @param reached_decimation_y the reached vertical decimation_y factor.
+   * @return false if a communication error occurred or true otherwise.
+   */
+  virtual bool setDecimationY(const size_t& target_decimation_y, size_t& reached_decimation_y) = 0;
+
+  /**
    * Sets the target horizontal binning_x factor
    * @param target_binning_x the target horizontal binning_x factor.
    * @param reached_binning_x the reached horizontal binning_x factor.
@@ -246,6 +262,18 @@ public:
    * @return the roi setting.
    */
   virtual sensor_msgs::RegionOfInterest currentROI() = 0;
+
+  /**
+   * Returns the current horizontal decimation_x setting.
+   * @return the horizontal decimation_x setting.
+   */
+  virtual size_t currentDecimationX() = 0;
+
+  /**
+   * Returns the current vertical decimation_y setting.
+   * @return the vertical decimation_y setting.
+   */
+  virtual size_t currentDecimationY() = 0;
 
   /**
    * Returns the current horizontal binning_x setting.

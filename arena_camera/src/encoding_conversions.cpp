@@ -52,18 +52,6 @@ bool ros2GenAPI(const std::string& ros_enc, std::string& gen_api_enc)
   {
     gen_api_enc = "Mono16";
   }
-  else if (ros_enc == sensor_msgs::image_encodings::CONFIDENCE16)
-  {
-    gen_api_enc = "Confidence16";
-  }
-  else if (ros_enc == sensor_msgs::image_encodings::COORD3D_ABC16)
-  {
-    gen_api_enc = "Coord3D_ABC16";
-  }
-  else if (ros_enc == sensor_msgs::image_encodings::COORD3D_ABCY16)
-  {
-    gen_api_enc = "Coord3D_ABCY16";
-  }
   else if (ros_enc == sensor_msgs::image_encodings::BGR8)
   {
     gen_api_enc = "BGR8";
@@ -125,19 +113,7 @@ bool genAPI2Ros(const std::string& gen_api_enc, std::string& ros_enc)
   }
   else if (gen_api_enc == "Mono16")
   {
-    ros_enc = sensor_msgs::image_encodings::TYPE_16UC1;
-  }
-  else if (gen_api_enc == "Confidence16")
-  {
-    ros_enc = sensor_msgs::image_encodings::TYPE_16UC1;
-  }
-  else if (gen_api_enc == "Coord3D_ABC16")
-  {
-    ros_enc = sensor_msgs::image_encodings::TYPE_16UC3;
-  }
-  else if (gen_api_enc == "Coord3D_ABCY16")
-  {
-    ros_enc = sensor_msgs::image_encodings::TYPE_16UC4;
+    ros_enc = sensor_msgs::image_encodings::MONO16;
   }
   else if (gen_api_enc == "BGR8")
   {

@@ -14,6 +14,9 @@ This package offers many service and action definitions to control a camera.
 ******
 **Services**
 ******
+- **SetDecimation**
+  Decimation factor to get downsampled images. It refers here to any camera setting which combines rectangular neighborhoods of pixels into larger 'super-pixels'. It reduces the resolution of the output image to (width / binning_x) x (height / binning_y). The default values binning_x = binning_y = 0 are considered the same as binning_x = binning_y = 1 (no subsampling). Calling this service with target binning values will change the binning entry in the published camera_info_msg of the camera.
+
 - **SetBinning**
   Binning factor to get downsampled images. It refers here to any camera setting which combines rectangular neighborhoods of pixels into larger 'super-pixels'. It reduces the resolution of the output image to (width / binning_x) x (height / binning_y). The default values binning_x = binning_y = 0 are considered the same as binning_x = binning_y = 1 (no subsampling). Calling this service with target binning values will change the binning entry in the published camera_info_msg of the camera.
 

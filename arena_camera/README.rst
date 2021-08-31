@@ -56,6 +56,9 @@ All parameters are listed in the default config file:  ``config/default.yaml``
   The encoding of the pixels -- channel meaning, ordering, size taken from the list of strings in include/sensor_msgs/image_encodings.h. The supported encodings are 'mono8', 'bgr8', 'rgb8', 'bayer_bggr8', 'bayer_gbrg8' and 'bayer_rggb8'.
   Default values are 'mono8' and 'rgb8'
 
+- **decimation_x & decimation_y**
+  Throws away rows/columns of an image to create a lower resolution image. The default values decimation_x = decimation_y = 1 (no subsampling).
+
 - **binning_x & binning_y**
   Binning factor to get downsampled images. It refers here to any camera setting which combines rectangular neighborhoods of pixels into larger "super-pixels." It reduces the resolution of the output image to (width / binning_x) x (height / binning_y). The default values binning_x = binning_y = 0 are considered the same as binning_x = binning_y = 1 (no subsampling).
 

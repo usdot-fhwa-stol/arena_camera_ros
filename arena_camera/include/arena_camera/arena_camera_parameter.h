@@ -111,6 +111,21 @@ public:
   void setCameraInfoURL(const ros::NodeHandle& nh, const std::string& camera_info_url);
 
 public:
+  /** Decimation factor to get lower-resolution images. Rows or columns of 
+   * pixels are thrown away (evenly spaced), leaving a smaller image, of size
+   * (width / decimation_x) x (height / decimation_y).
+   * The default values are decimation_x = decimation_y = 1 (no subsampling).
+   */
+  size_t decimation_x_;
+  size_t decimation_y_;
+
+  /**
+   * Flags which indicate if the binning factors are provided and hence
+   * should be set during startup
+   */
+  bool decimation_x_given_;
+  bool decimation_y_given_;
+
   /** Binning factor to get downsampled images. It refers here to any camera
    * setting which combines rectangular neighborhoods of pixels into larger
    * "super-pixels." It reduces the resolution of the output image to

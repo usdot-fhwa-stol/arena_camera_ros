@@ -31,6 +31,13 @@
     Calling the GrabImages-Action can result in a higher framerate -->
     <arg name="frame_rate" default="5.0" />
 
+    <!-- Decimation factor to get lower-resolution images. Rows or columns of 
+    pixels are thrown away (evenly spaced), leaving a smaller image, of size
+    (width / decimation_x) x (height / decimation_y).
+    The default values are decimation_x = decimation_y = 1 (no subsampling). -->
+    <arg name="decimation_x" default="1" />
+    <arg name="decimation_y" default="1" />
+
     <!-- Binning factor to get downsampled images. It refers here to any camera
     setting which combines rectangular neighborhoods of pixels into larger
     "super-pixels." It reduces the resolution of the output image to
@@ -120,6 +127,8 @@
         <param name="camera_info_url" value="$(arg camera_info_url)" />
         <param name="image_encoding" value="$(arg image_encoding)" />
         <param name="frame_rate" value="$(arg frame_rate)" />
+        <param name="decimation_x" value="$(arg decimation_x)" />
+        <param name="decimation_y" value="$(arg decimation_y)" />
         <param name="binning_x" value="$(arg binning_x)" />
         <param name="binning_y" value="$(arg binning_y)" />
         <param name="shutter_mode" value="$(arg shutter_mode)" />

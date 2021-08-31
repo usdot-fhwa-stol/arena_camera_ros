@@ -73,6 +73,12 @@ virtual bool setShutterMode(const arena_camera::SHUTTER_MODE& mode);
 virtual bool setROI(const sensor_msgs::RegionOfInterest target_roi,
                     sensor_msgs::RegionOfInterest& reached_roi);
 
+virtual bool setDecimationX(const size_t& target_decimation_x,
+                         size_t& reached_decimation_x);
+
+virtual bool setDecimationY(const size_t& target_decimation_y,
+                         size_t& reached_decimation_y);
+
 virtual bool setBinningX(const size_t& target_binning_x,
                          size_t& reached_binning_x);
 
@@ -103,6 +109,10 @@ virtual size_t currentOffsetX();
 virtual size_t currentOffsetY();
 
 virtual sensor_msgs::RegionOfInterest currentROI();
+
+virtual size_t currentDecimationX();
+
+virtual size_t currentDecimationY();
 
 virtual size_t currentBinningX();
 

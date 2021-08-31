@@ -1,0 +1,16 @@
+# Decimation factor to get downsampled images. It refers here to any camera
+# setting which combines rectangular neighborhoods of pixels into larger
+# "super-pixels." It reduces the resolution of the output image to
+# (width / decimation_x) x (height / decimation_y).
+# The default values decimation_x = decimation_y = 0 are considered the same
+# as decimation_x = decimation_y = 1 (no subsampling).
+# Calling this service with target decimation values will change the decimation entry
+# in the published camera_info_msg
+uint32 target_decimation_x
+uint32 target_decimation_y
+
+---
+# Exact match can not always be reached
+uint32 reached_decimation_x
+uint32 reached_decimation_y
+bool success

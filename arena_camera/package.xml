@@ -5,7 +5,7 @@
   <description>
     Proprietary Package for Lucid Cameras using the the Arena API.
     - Supports DART, USB3 and GigE cameras.
-    - Setting Gain, Gamma, Exposure, Binning and Brightness using Services.
+    - Setting Gain, Gamma, Exposure, Decimation, Binning and Brightness using Services.
   </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
