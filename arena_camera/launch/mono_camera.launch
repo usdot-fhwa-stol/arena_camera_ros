@@ -5,7 +5,9 @@
     <arg unless="$(arg debug)" name="launch_prefix" value="" />
     <arg     if="$(arg debug)" name="launch_prefix" value="gdb -ex run --args" />
     <arg name="node_name" default="arena_camera_node" />
-
+    <arg name="compression_name" default="image_raw/compressed" />
+    <arg name="compression_params" default="{format: jpeg, jpeg_quality: 90, png_level: 9}" />
+        
     <!-- The TF frame name to publish camera messages under -->
     <arg name="camera_frame" default="front_left" />
 
@@ -74,7 +76,7 @@
     try to reach the desired brightness by only varying the exposure time. If
     gain AND exposure are given, it is not possible to reach the brightness,
     because both are assumed to be fix.. -->
-    <arg name="brightness" default="100" />
+    <arg name="brightness" default="40" />
 
     <!--Only relevant, if 'brightness' is set:
     The brightness_continuous flag controls the auto brightness function.
@@ -122,6 +124,7 @@
 
     <node name="$(arg node_name)" ns="$(arg device_user_id)" pkg="arena_camera" type="arena_camera_node" output="screen"
           respawn="$(arg respawn)" launch-prefix="$(arg launch_prefix)">
+        <rosparam param="$(arg compression_name)" subst_value="True">$(arg compression_params)</rosparam>
         <param name="camera_frame" value="$(arg camera_frame)" />
         <param name="device_user_id" value="$(arg device_user_id)" />
         <param name="camera_info_url" value="$(arg camera_info_url)" />

@@ -444,6 +444,84 @@ bool ArenaCameraNode::startGrabbing()
     }
 
     //
+    //  Initial setting of the CameraInfo-msg, assuming no calibration given
+    CameraInfo initial_cam_info;
+    setupInitialCameraInfo(initial_cam_info);
+    camera_info_manager_->setCameraInfo(initial_cam_info);
+
+    if (arena_camera_parameter_set_.cameraInfoURL().empty() ||
+        !camera_info_manager_->validateURL(arena_camera_parameter_set_.cameraInfoURL()))
+    {
+      ROS_INFO_STREAM("CameraInfoURL needed for rectification! ROS-Param: "
+                      << "'" << nh_.getNamespace() << "/camera_info_url' = '"
+                      << arena_camera_parameter_set_.cameraInfoURL() << "' is invalid!");
+      ROS_DEBUG_STREAM("CameraInfoURL should have following style: "
+                       << "'file:///full/path/to/local/file.yaml' or "
+                       << "'file://${ROS_HOME}/camera_info/${NAME}.yaml'");
+      ROS_WARN_STREAM("Will only provide distorted /image_raw images!");
+    }
+    else
+    {
+      // override initial camera info if the url is valid
+      if (camera_info_manager_->loadCameraInfo(arena_camera_parameter_set_.cameraInfoURL()))
+      {
+        setupRectification();
+        // set the correct tf frame_id
+        CameraInfoPtr cam_info(new CameraInfo(camera_info_manager_->getCameraInfo()));
+        cam_info->header.frame_id = img_raw_msg_.header.frame_id;
+        camera_info_manager_->setCameraInfo(*cam_info);
+      }
+      else
+      {
+        ROS_WARN_STREAM("Will only provide distorted /image_raw images!");
+      }
+    }
+
+    if (arena_camera_parameter_set_.decimation_x_given_)
+    {
+      size_t reached_decimation_x;
+      if (setDecimationX(arena_camera_parameter_set_.decimation_x_, reached_decimation_x))
+      {
+        ROS_INFO_STREAM("Setting horizontal decimation_x to " << arena_camera_parameter_set_.decimation_x_);
+        ROS_WARN_STREAM("The image width of the camera_info-msg will "
+                        << "be adapted, so that the decimation_x value in this msg remains 1");
+      }
+    }
+
+    if (arena_camera_parameter_set_.decimation_y_given_)
+    {
+      size_t reached_decimation_y;
+      if (setDecimationY(arena_camera_parameter_set_.decimation_y_, reached_decimation_y))
+      {
+        ROS_INFO_STREAM("Setting vertical decimation_y to " << arena_camera_parameter_set_.decimation_y_);
+        ROS_WARN_STREAM("The image height of the camera_info-msg will "
+                        << "be adapted, so that the decimation_y value in this msg remains 1");
+      }
+    }
+
+    if (arena_camera_parameter_set_.binning_x_given_)
+    {
+      size_t reached_binning_x;
+      if (setBinningX(arena_camera_parameter_set_.binning_x_, reached_binning_x))
+      {
+        ROS_INFO_STREAM("Setting horizontal binning_x to " << arena_camera_parameter_set_.binning_x_);
+        ROS_WARN_STREAM("The image width of the camera_info-msg will "
+                        << "be adapted, so that the binning_x value in this msg remains 1");
+      }
+    }
+
+    if (arena_camera_parameter_set_.binning_y_given_)
+    {
+      size_t reached_binning_y;
+      if (setBinningY(arena_camera_parameter_set_.binning_y_, reached_binning_y))
+      {
+        ROS_INFO_STREAM("Setting vertical binning_y to " << arena_camera_parameter_set_.binning_y_);
+        ROS_WARN_STREAM("The image height of the camera_info-msg will "
+                        << "be adapted, so that the binning_y value in this msg remains 1");
+      }
+    }
+
+    //
     // FRAMERATE
     //
     auto cmdlnParamFrameRate = arena_camera_parameter_set_.frameRate();
@@ -554,84 +632,6 @@ bool ArenaCameraNode::startGrabbing()
     }
 
     // ------------------------------------------------------------------------
-
-    //
-    //  Initial setting of the CameraInfo-msg, assuming no calibration given
-    CameraInfo initial_cam_info;
-    setupInitialCameraInfo(initial_cam_info);
-    camera_info_manager_->setCameraInfo(initial_cam_info);
-
-    if (arena_camera_parameter_set_.cameraInfoURL().empty() ||
-        !camera_info_manager_->validateURL(arena_camera_parameter_set_.cameraInfoURL()))
-    {
-      ROS_INFO_STREAM("CameraInfoURL needed for rectification! ROS-Param: "
-                      << "'" << nh_.getNamespace() << "/camera_info_url' = '"
-                      << arena_camera_parameter_set_.cameraInfoURL() << "' is invalid!");
-      ROS_DEBUG_STREAM("CameraInfoURL should have following style: "
-                       << "'file:///full/path/to/local/file.yaml' or "
-                       << "'file://${ROS_HOME}/camera_info/${NAME}.yaml'");
-      ROS_WARN_STREAM("Will only provide distorted /image_raw images!");
-    }
-    else
-    {
-      // override initial camera info if the url is valid
-      if (camera_info_manager_->loadCameraInfo(arena_camera_parameter_set_.cameraInfoURL()))
-      {
-        setupRectification();
-        // set the correct tf frame_id
-        CameraInfoPtr cam_info(new CameraInfo(camera_info_manager_->getCameraInfo()));
-        cam_info->header.frame_id = img_raw_msg_.header.frame_id;
-        camera_info_manager_->setCameraInfo(*cam_info);
-      }
-      else
-      {
-        ROS_WARN_STREAM("Will only provide distorted /image_raw images!");
-      }
-    }
-
-    if (arena_camera_parameter_set_.decimation_x_given_)
-    {
-      size_t reached_decimation_x;
-      if (setDecimationX(arena_camera_parameter_set_.decimation_x_, reached_decimation_x))
-      {
-        ROS_INFO_STREAM("Setting horizontal decimation_x to " << arena_camera_parameter_set_.decimation_x_);
-        ROS_WARN_STREAM("The image width of the camera_info-msg will "
-                        << "be adapted, so that the decimation_x value in this msg remains 1");
-      }
-    }
-
-    if (arena_camera_parameter_set_.decimation_y_given_)
-    {
-      size_t reached_decimation_y;
-      if (setDecimationY(arena_camera_parameter_set_.decimation_y_, reached_decimation_y))
-      {
-        ROS_INFO_STREAM("Setting vertical decimation_y to " << arena_camera_parameter_set_.decimation_y_);
-        ROS_WARN_STREAM("The image height of the camera_info-msg will "
-                        << "be adapted, so that the decimation_y value in this msg remains 1");
-      }
-    }
-
-    if (arena_camera_parameter_set_.binning_x_given_)
-    {
-      size_t reached_binning_x;
-      if (setBinningX(arena_camera_parameter_set_.binning_x_, reached_binning_x))
-      {
-        ROS_INFO_STREAM("Setting horizontal binning_x to " << arena_camera_parameter_set_.binning_x_);
-        ROS_WARN_STREAM("The image width of the camera_info-msg will "
-                        << "be adapted, so that the binning_x value in this msg remains 1");
-      }
-    }
-
-    if (arena_camera_parameter_set_.binning_y_given_)
-    {
-      size_t reached_binning_y;
-      if (setBinningY(arena_camera_parameter_set_.binning_y_, reached_binning_y))
-      {
-        ROS_INFO_STREAM("Setting vertical binning_y to " << arena_camera_parameter_set_.binning_y_);
-        ROS_WARN_STREAM("The image height of the camera_info-msg will "
-                        << "be adapted, so that the binning_y value in this msg remains 1");
-      }
-    }
 
     // if (arena_camera_parameter_set_.image_encoding_given_)
     // {
@@ -793,7 +793,8 @@ void ArenaCameraNode::spin()
     {
       if (!grabImage())
       {
-        ROS_INFO("did not get image");
+        ROS_ERROR_STREAM("did not get image");
+        // throw std::runtime_error("Did not get image");
         return;
       }
     }
@@ -826,34 +827,34 @@ void ArenaCameraNode::spin()
 bool ArenaCameraNode::grabImage()
 {
   boost::lock_guard<boost::recursive_mutex> lock(grab_mutex_);
-  try
+  // try
+  // {
+  GenApi::CStringPtr pTriggerMode = pDevice_->GetNodeMap()->GetNode("TriggerMode");
+  if (GenApi::IsWritable(pTriggerMode))
   {
-    GenApi::CStringPtr pTriggerMode = pDevice_->GetNodeMap()->GetNode("TriggerMode");
-    if (GenApi::IsWritable(pTriggerMode))
+    bool isTriggerArmed = false;
+
+    do
     {
-      bool isTriggerArmed = false;
-
-      do
-      {
-        isTriggerArmed = Arena::GetNodeValue<bool>(pDevice_->GetNodeMap(), "TriggerArmed");
-      } while (isTriggerArmed == false);
-      Arena::ExecuteNode(pDevice_->GetNodeMap(), "TriggerSoftware");
-    }
-    pImage_ = pDevice_->GetImage(5000);
-    pData_ = pImage_->GetData();
-
-    img_raw_msg_.data.resize(img_raw_msg_.height * img_raw_msg_.step);
-    memcpy(&img_raw_msg_.data[0], pImage_->GetData(), img_raw_msg_.height * img_raw_msg_.step);
-
-    img_raw_msg_.header.stamp = ros::Time::now();
-
-    pDevice_->RequeueBuffer(pImage_);
-    return true;
+      isTriggerArmed = Arena::GetNodeValue<bool>(pDevice_->GetNodeMap(), "TriggerArmed");
+    } while (isTriggerArmed == false);
+    Arena::ExecuteNode(pDevice_->GetNodeMap(), "TriggerSoftware");
   }
-  catch (GenICam::GenericException& e)
-  {
-    return false;
-  }
+  pImage_ = pDevice_->GetImage(5000);
+  pData_ = pImage_->GetData();
+
+  img_raw_msg_.data.resize(img_raw_msg_.height * img_raw_msg_.step);
+  memcpy(&img_raw_msg_.data[0], pImage_->GetData(), img_raw_msg_.height * img_raw_msg_.step);
+
+  img_raw_msg_.header.stamp = ros::Time::now();
+
+  pDevice_->RequeueBuffer(pImage_);
+  return true;
+  // }
+  // catch (GenICam::GenericException& e)
+  // {
+  //   return false;
+  // }
 }
 
 void ArenaCameraNode::grabImagesRawActionExecuteCB(const camera_control_msgs::GrabImagesGoal::ConstPtr& goal)
@@ -2220,3 +2221,4 @@ ArenaCameraNode::~ArenaCameraNode()
 }
 
 }  // namespace arena_camera
+

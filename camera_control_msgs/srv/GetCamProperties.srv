@@ -6,6 +6,14 @@ bool is_sleeping
 
 string device_user_id
 
+int32 min_decimation_x
+int32 max_decimation_x
+int32 current_decimation_x
+
+int32 min_decimation_y
+int32 max_decimation_y
+int32 current_decimation_y
+
 int32 min_binning_x
 int32 max_binning_x
 int32 current_binning_x
