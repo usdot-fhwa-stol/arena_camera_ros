@@ -31,7 +31,14 @@
     <!-- The desired publisher frame rate if listening to the topics.
     This parameter can only be set once at startup
     Calling the GrabImages-Action can result in a higher framerate -->
-    <arg name="frame_rate" default="5.0" />
+    <arg name="frame_rate" default="40.0" />
+
+    <!-- Decimation factor to get lower-resolution images. Rows or columns of 
+    pixels are thrown away (evenly spaced), leaving a smaller image, of size
+    (width / decimation_x) x (height / decimation_y).
+    The default values are decimation_x = decimation_y = 1 (no subsampling). -->
+    <arg name="decimation_x" default="2" />
+    <arg name="decimation_y" default="2" />
 
     <!-- Decimation factor to get lower-resolution images. Rows or columns of 
     pixels are thrown away (evenly spaced), leaving a smaller image, of size
@@ -55,18 +62,18 @@
     <arg name="shutter_mode" default="" />
 
     <!--The exposure time in microseconds to be set after opening the camera.-->
-    <arg name="exposure" default="10000.0" />
+    <!-- <arg name="exposure" default="10000.0" /> -->
 
     <!--The target gain in percent of the maximal value the camera supports
     For USB-Cameras, the gain is in dB, for GigE-Cameras it is given in so
     called 'device specific units'.-->
-    <arg name="gain" default="0.5" />
+    <!-- <arg name="gain" default="0.2" /> -->
 
     <!--Gamma correction of pixel intensity.
     Adjusts the brightness of the pixel values output by the camera's sensor
     to account for a non-linearity in the human perception of brightness or
     of the display system (such as CRT).-->
-    <arg name="gamma" default="1.0" />
+    <arg name="gamma" default="0.75" />
 
     <!--The average intensity value of the images. It depends the exposure time
     as well as the gain setting. If 'exposure' is provided, the interface will
@@ -76,7 +83,7 @@
     try to reach the desired brightness by only varying the exposure time. If
     gain AND exposure are given, it is not possible to reach the brightness,
     because both are assumed to be fix.. -->
-    <arg name="brightness" default="40" />
+    <arg name="brightness" default="70" />
 
     <!--Only relevant, if 'brightness' is set:
     The brightness_continuous flag controls the auto brightness function.
@@ -122,6 +129,9 @@
     For cameras used on a RaspberryPI this value should be set to 11772. -->
     <arg name="inter_pkg_delay" default="2000" />
 
+    <env name="ROSCONSOLE_CONFIG_FILE"
+        value="$(find arena_camera)/config/rosconsole.conf"/>
+
     <node name="$(arg node_name)" ns="$(arg device_user_id)" pkg="arena_camera" type="arena_camera_node" output="screen"
           respawn="$(arg respawn)" launch-prefix="$(arg launch_prefix)">
         <rosparam param="$(arg compression_name)" subst_value="True">$(arg compression_params)</rosparam>
@@ -135,16 +145,20 @@
         <param name="binning_x" value="$(arg binning_x)" />
         <param name="binning_y" value="$(arg binning_y)" />
         <param name="shutter_mode" value="$(arg shutter_mode)" />
-        <!-- <param name="exposure" value="$(arg exposure)" />
-        <param name="gain" value="$(arg gain)" />
+        <!-- <param name="exposure" value="$(arg exposure)" /> -->
+        <!-- <param name="gain" value="$(arg gain)" /> -->
         <param name="gamma" value="$(arg gamma)" />
         <param name="brightness" value="$(arg brightness)" />
-        <param name="brightness_continuous" value="$(arg brightness_continuous)" /> -->
+        <param name="brightness_continuous" value="$(arg brightness_continuous)" />
         <param name="exposure_auto" value="$(arg exposure_auto)" />
         <param name="gain_auto" value="$(arg gain_auto)" />
         <param name="exposure_search_timeout" value="$(arg exposure_search_timeout)" />
-        <!-- <param name="auto_exposure_upper_limit" value="$(arg auto_exposure_upper_limit)" /> -->
+        <param name="auto_exposure_upper_limit" value="$(arg auto_exposure_upper_limit)" />
         <param name="mtu_size" value="$(arg mtu_size)" />
         <param name="inter_pkg_delay" value="$(arg inter_pkg_delay)" />
+    </node>
+
+    <node name="image_view" pkg="image_view" type="image_view" respawn="false" output="screen">
+        <remap from="image" to="/$(arg device_user_id)/arena_camera_node/image_raw" />
     </node>
 </launch>
