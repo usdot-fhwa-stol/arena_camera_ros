@@ -620,6 +620,40 @@ bool ArenaCameraNode::startGrabbing()
     }
 
     //
+    // BRIGHTNESS
+    //
+
+    Arena::SetNodeValue<int64_t>(pNodeMap, "TargetBrightness", arena_camera_parameter_set_.brightness_);
+    // Arena::SetNodeValue<int64_t>(pDevice_->GetNodeMap(), "TargetBrightness", arena_camera_parameter_set_.brightness_ );
+
+    // // brightness_continuous_ is independent of whether brightness_given_ is true or false
+    // // read params () solved the priority between them
+    // if (arena_camera_parameter_set_.brightness_continuous_)
+    // {
+    //   Arena::SetNodeValue<GenICam::gcstring>(pNodeMap, "BrightnessContinuous", "Continuous");
+    //   // todo update parameter on the server
+    //   ROS_INFO_STREAM("Settings Brightness to auto/Continuous");
+    // }
+    // else
+    // {
+    //   Arena::SetNodeValue<GenICam::gcstring>(pNodeMap, "BrightnessContinuous", "Off");
+    //   // todo update parameter on the server
+    //   ROS_INFO_STREAM("Settings Brightness Continuous to off/false");
+    // }
+
+    // if (arena_camera_parameter_set_.brightness_given_)
+    // {
+    //   int reached_brightness;
+    //   if (setBrightness(arena_camera_parameter_set_.brightness_, reached_brightness, arena_camera_parameter_set_.exposure_auto_,
+    //                                 arena_camera_parameter_set_.gain_auto_))
+    //   {
+    //     // Note: ont update the ros param because it might keep 
+    //     // decreasing or incresing overtime when rerun
+    //     ROS_INFO_STREAM("Setting brightness to: " << arena_camera_parameter_set_.brightness_ << ", reached: " << reached_brightness);
+    //   }
+    // }
+
+    //
     // GAMMA
     //
     if (arena_camera_parameter_set_.gamma_given_)
